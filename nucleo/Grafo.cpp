@@ -13,6 +13,16 @@ GrafoDisperso::~GrafoDisperso() {}
 
 // cargar datos desde archivo de texto
 void GrafoDisperso::cargarDatos(const std::string& nombreArchivo) {
+    // reiniciar estado interno para permitir cargar multiples datasets
+    // comentarios en español en minusculas como se solicitó
+    valores.clear();
+    indices_col.clear();
+    ptr_fila.clear();
+    id_original_a_interno.clear();
+    id_interno_a_original.clear();
+    num_nodos = 0;
+    num_aristas = 0;
+
     std::ifstream archivo(nombreArchivo);
     if (!archivo.is_open()) {
         std::cerr << "error al abrir el archivo" << std::endl;
@@ -87,9 +97,10 @@ int GrafoDisperso::obtenerIdExterno(int idInterno) {
 // busqueda en anchura
 std::vector<int> GrafoDisperso::busquedaAnchura(int nodoInicio, int profundidadMax) {
     std::vector<int> resultado;
-    int inicioInterno = obtenerIdInterno(nodoInicio);
-    
-    if (inicioInterno >= num_nodos) return resultado;
+    // evitar crear ids nuevos si el nodo no existe en el grafo
+    auto it = id_original_a_interno.find(nodoInicio);
+    if (it == id_original_a_interno.end() || num_nodos == 0) return resultado;
+    int inicioInterno = it->second;
 
     std::queue<std::pair<int, int>> cola;
     std::set<int> visitados;
@@ -139,9 +150,10 @@ int GrafoDisperso::obtenerNodoMayorGrado() {
 // obtener vecinos de un nodo
 std::vector<int> GrafoDisperso::obtenerVecinos(int nodo) {
     std::vector<int> vecinos;
-    int nodoInterno = obtenerIdInterno(nodo);
-    
-    if (nodoInterno >= num_nodos || nodoInterno < 0) return vecinos;
+    // evitar crear ids nuevos si el nodo no existe en el grafo
+    auto it = id_original_a_interno.find(nodo);
+    if (it == id_original_a_interno.end() || num_nodos == 0) return vecinos;
+    int nodoInterno = it->second;
 
     int inicio = ptr_fila[nodoInterno];
     int fin = ptr_fila[nodoInterno + 1];
